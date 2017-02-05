@@ -60,7 +60,7 @@ def centroid(img):
     return x/a, y/a
 
 
-# TODO need to make sure there is a upper and left pixel
+
 def components(img):
     comps = np.zeros(img.shape)
     nrow, ncols = img.shape
@@ -68,15 +68,20 @@ def components(img):
     for i in range(nrow):
         for j in range(ncols):
             if img[i][j] == 1:
-                upper = comps[i-1][j]
-                left = comps[i][j-1]
+                if i == 0 and j == 0:
+                    upper = 0
+                    left = 0
+                else:
+                    upper = comps[i-1][j]
+                    left = comps[i][j-1]
+
                 if upper != 0 and left == 0:
                     comps[i][j] = upper
                 elif upper == 0 and left != 0:
                     comps[i][j] = left
-                elif (upper == left) and (upper != 0) and (left != 0):
+                elif upper == left:
                     comps[i][j] = upper
-                elif upper != 0 and left != 0:
+                elif (upper != left) and (upper != 0) and (left != 0):
                     comps[i][j] = upper
                     # TODO add to equivalence table
                 else:
