@@ -8,17 +8,25 @@ from skimage.draw import polygon_perimeter
 
 def main():
     print("Loading image...")
-    circle = io.imread('img/bw.jpg')
-    threshold(circle, 1, 128)
-    # print("Shape:", circle.shape)
-    # print("Size:", circle.size)
-    # print("Image Area:", img_area(circle, 1))
-    # print("Centroid:", centroid(circle, 1))
-    # bb = bounding_box(circle, 1)
-    # print("Boundary Box [row][col]:", bb)
-    # print("Orientation:", orientation(circle, 1))
-    # print("Eccentricity:", eccentricity(circle, 1))
-    plt.imshow(components(circle))
+    circles = io.imread('img/bw.jpg')
+    print("Shape:", circles.shape)
+    print("Size:", circles.size)
+    threshold(circles, 128)
+    c_img, c_set = components(circles, 20)
+    draw_final = c_img
+    print("Number of components:", len(c_set))
+    print("")
+    for c in c_set:
+        print("Attributes of component:", c)
+        print("Image Area:", img_area(c_img, c))
+        print("Centroid:", centroid(c_img, c))
+        bb = bounding_box(c_img, c)
+        draw_bounding_box(draw_final, bb)
+        print("Boundary Box [row][col]:", bb)
+        print("Orientation:", orientation(c_img, c))
+        print("Eccentricity:", eccentricity(c_img, c))
+        print("")
+    plt.imshow(draw_final)
     plt.show()
 
 
@@ -32,7 +40,7 @@ def normalize_binary_img(img):
 
 
 # find threshold of image using numpy array masking
-def threshold(img, component_id, t):
+def threshold(img, t):
     maska = img < t
     maskb = img >= t
     img[maska] = 0
@@ -68,11 +76,12 @@ def centroid(img, component_id):
     return x / a, y / a
 
 
-def components(img):
+def components(img, size: int = None):
     comps = np.zeros(img.shape)
     nrow, ncols = img.shape
     label = 1
     labels = Labels()
+    set_of_labels = set()
     for i in range(nrow):
         for j in range(ncols):
             if img[i][j] == 1:
@@ -100,9 +109,17 @@ def components(img):
     for i in range(nrow):
         for j in range(ncols):
             if comps[i][j] != 0:
-                comps[i][j] = labels.root(comps[i][j])
-
-    return comps
+                v = labels.root(comps[i][j])
+                comps[i][j] = v
+                set_of_labels.add(v)
+    final_labels = set_of_labels.copy()
+    for c in set_of_labels:
+        if size is not None:
+            if img_area(comps, c) < size:
+                mask = comps == c
+                comps[mask] = 0
+                final_labels.remove(c)
+    return comps, final_labels
 
 
 class Labels:
@@ -119,7 +136,7 @@ class Labels:
         if self.exists(label) is None:
             self.l.append(Connection(label, self.exists(parent)))
 
-    def link(self, label:int, parent:int):
+    def link(self, label: int, parent: int):
         self.exists(label).parent = self.exists(parent)
 
     def root(self, label: int):
@@ -160,7 +177,7 @@ def bounding_box(img, component_id):
 
 def draw_bounding_box(img, points):
     rr, cc = polygon_perimeter(points[0], points[1], img.shape)
-    img[rr, cc] = 1
+    img[rr, cc] = 255
     return img
 
 
