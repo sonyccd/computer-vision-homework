@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage import io
-from skimage.draw import polygon_perimeter
+from skimage.draw import polygon_perimeter, circle_perimeter
 
 
 def main():
@@ -17,9 +17,11 @@ def main():
     print("Number of components:", len(c_set))
     print("")
     for c in c_set:
-        print("Attributes of component:", c)
+        print("Component ID:", c)
         print("Image Area:", img_area(c_img, c))
-        print("Centroid:", centroid(c_img, c))
+        center = centroid(c_img, c)
+        draw_centroid(draw_final, center)
+        print("Centroid:", center)
         bb = bounding_box(c_img, c)
         draw_bounding_box(draw_final, bb)
         print("Boundary Box [row][col]:", bb)
@@ -74,6 +76,12 @@ def centroid(img, component_id):
             x += j * (1 if img[i][j] == component_id else 0)
             y += i * (1 if img[i][j] == component_id else 0)
     return x / a, y / a
+
+
+def draw_centroid(img, points):
+    rr, cc = circle_perimeter(int(points[0]), int(points[1]), radius=10, shape=img.shape)
+    img[rr, cc] = 255
+    return img
 
 
 def components(img, size: int = None):
@@ -159,12 +167,14 @@ def equalize(img):
     temp = img.copy()
     unique_values_np = np.unique(temp)
     unique_values = list(unique_values_np)
+    unique_values.pop(0)
     eq = np.linspace(25, 200, len(unique_values), dtype=int)
     nrow, ncols = temp.shape
     for i in range(nrow):
         for j in range(ncols):
-            index = unique_values.index(temp[i][j])
-            temp[i][j] = eq[index]
+            if temp[i][j] != 0:
+                index = unique_values.index(temp[i][j])
+                temp[i][j] = eq[index]
     return temp
 
 
