@@ -13,7 +13,7 @@ def main():
     print("Size:", circles.size)
     threshold(circles, 128)
     c_img, c_set = components(circles, 20)
-    draw_final = c_img
+    draw_final = equalize(c_img)
     print("Number of components:", len(c_set))
     print("")
     for c in c_set:
@@ -153,6 +153,19 @@ class Connection:
             return self.component_id
         else:
             return self.parent.root()
+
+
+def equalize(img):
+    temp = img.copy()
+    unique_values_np = np.unique(temp)
+    unique_values = list(unique_values_np)
+    eq = np.linspace(25, 200, len(unique_values), dtype=int)
+    nrow, ncols = temp.shape
+    for i in range(nrow):
+        for j in range(ncols):
+            index = unique_values.index(temp[i][j])
+            temp[i][j] = eq[index]
+    return temp
 
 
 def bounding_box(img, component_id):
