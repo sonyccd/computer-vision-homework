@@ -1,18 +1,23 @@
-from skimage import io, data
-import numpy as np
+import math
+
 import matplotlib.pyplot as plt
+import numpy as np
+from skimage import io
+from skimage.draw import polygon_perimeter
 
 
 def main():
     print("Loading image...")
-    circle = io.imread('img/cir.gif')
-    threshold(circle, 80)
+    circle = io.imread('img/art5.gif')
+    threshold(circle, 1, 80)
     print("Shape:", circle.shape)
     print("Size:", circle.size)
-    print("Image Area:", img_area(circle))
-    print("Centroid:", centroid(circle))
-    plt.imshow(components(circle))
-    plt.show()
+    print("Image Area:", img_area(circle, 1))
+    print("Centroid:", centroid(circle, 1))
+    bb = bounding_box(circle, 1)
+    print("Boundary Box [row][col]:", bb)
+    print("Orientation:", orientation(circle, 1))
+    print("Eccentricity:", eccentricity(circle, 1))
 
 
 # take binary image and set the 1s to 255
@@ -25,11 +30,12 @@ def normalize_binary_img(img):
 
 
 # find threshold of image using numpy array masking
-def threshold(img, t):
+def threshold(img, component_id, t):
     maska = img < t
     maskb = img >= t
     img[maska] = 0
     img[maskb] = 1
+    return img
 
 
 # create histogram from image
@@ -39,26 +45,25 @@ def histogram(img):
 
 
 # fine area of image via raveling
-def img_area(img):
+def img_area(img, component_id):
     area = 0
     for i in img.ravel():
-        if i == 1:
+        if i == component_id:
             area += 1
     return area
 
 
 # find the centroid of entire image
-def centroid(img):
+def centroid(img, component_id):
     x = 0
     y = 0
-    a = img_area(img)
+    a = img_area(img, component_id)
     nrow, ncols = img.shape
     for i in range(nrow):
         for j in range(ncols):
-            x += j * img[i][j]
-            y += i * img[i][j]
-    return x/a, y/a
-
+            x += j * (1 if img[i][j] == component_id else 0)
+            y += i * (1 if img[i][j] == component_id else 0)
+    return x / a, y / a
 
 
 def components(img):
@@ -72,8 +77,8 @@ def components(img):
                     upper = 0
                     left = 0
                 else:
-                    upper = comps[i-1][j]
-                    left = comps[i][j-1]
+                    upper = comps[i - 1][j]
+                    left = comps[i][j - 1]
 
                 if upper != 0 and left == 0:
                     comps[i][j] = upper
@@ -88,6 +93,89 @@ def components(img):
                     comps[i][j] = label
                     label += 1
     return comps
+
+
+def bounding_box(img, component_id):
+    nrow, ncols = img.shape
+    t = nrow
+    b = 0
+    l = ncols
+    r = 0
+    for i in range(nrow):
+        for j in range(ncols):
+            if img[i][j] == component_id:
+                if i < t:
+                    t = i
+                if j < l:
+                    l = j
+                if b < i:
+                    b = i
+                if r < j:
+                    r = j
+    return [t, b, b, t], [l, l, r, r]
+
+
+def draw_bounding_box(img, points):
+    rr, cc = polygon_perimeter(points[0], points[1], img.shape)
+    img[rr, cc] = 1
+    return img
+
+
+# Moore-Neighbor Tracing
+def boundary(img, component_id):
+    b_pixels = []
+    s = None
+    p = None
+    c = None
+    nrow, ncols = img.shape
+    for i in range(nrow):
+        for j in range(ncols):
+            if img[i][j] == component_id and s is None:
+                s = (i, j)
+                b_pixels.append(s)
+                p = s
+
+                break
+            else:
+                return
+
+
+def second_moments(img, component_id):
+    a = 0
+    b = 0
+    c = 0
+    ic, jc = centroid(img, component_id)
+    nrow, ncols = img.shape
+    for i in range(nrow):
+        for j in range(ncols):
+            a += math.pow(i - ic, 2) * (1 if img[i][j] == component_id else 0)
+            b += ((i - ic) * (j - jc)) * (1 if img[i][j] == component_id else 0)
+            c += math.pow(j - jc, 2) * (1 if img[i][j] == component_id else 0)
+    return a, 2 * b, c
+
+
+def eccentricity(img, component_id):
+    a, b, c = second_moments(img, component_id)
+
+    def sin2theta():
+        return b / (math.sqrt(math.pow(b, 2) + math.pow((a - c), 2)))
+
+    def cos2theta():
+        return (a - c) / (math.sqrt(math.pow(b, 2) + math.pow((a - c), 2)))
+
+    xmin = .5 * (a + c) + .5 * (a - c) * cos2theta() + .5 * b * sin2theta()
+    xmax = .5 * (a + c) + .5 * (a - c) * -cos2theta() + .5 * b * -sin2theta()
+
+    return xmax/xmin
+
+
+def orientation(img, component_id):
+    a, b, c = second_moments(img, component_id)
+    if a == c:
+        return None
+    else:
+        return 0.5 * math.atan(b / (a - c))
+
 
 if __name__ == '__main__':
     main()
