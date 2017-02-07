@@ -8,16 +8,18 @@ from skimage.draw import polygon_perimeter
 
 def main():
     print("Loading image...")
-    circle = io.imread('img/art5.gif')
-    threshold(circle, 1, 80)
-    print("Shape:", circle.shape)
-    print("Size:", circle.size)
-    print("Image Area:", img_area(circle, 1))
-    print("Centroid:", centroid(circle, 1))
-    bb = bounding_box(circle, 1)
-    print("Boundary Box [row][col]:", bb)
-    print("Orientation:", orientation(circle, 1))
-    print("Eccentricity:", eccentricity(circle, 1))
+    circle = io.imread('img/bw.jpg')
+    threshold(circle, 1, 128)
+    # print("Shape:", circle.shape)
+    # print("Size:", circle.size)
+    # print("Image Area:", img_area(circle, 1))
+    # print("Centroid:", centroid(circle, 1))
+    # bb = bounding_box(circle, 1)
+    # print("Boundary Box [row][col]:", bb)
+    # print("Orientation:", orientation(circle, 1))
+    # print("Eccentricity:", eccentricity(circle, 1))
+    plt.imshow(components(circle))
+    plt.show()
 
 
 # take binary image and set the 1s to 255
@@ -70,6 +72,7 @@ def components(img):
     comps = np.zeros(img.shape)
     nrow, ncols = img.shape
     label = 1
+    labels = Labels()
     for i in range(nrow):
         for j in range(ncols):
             if img[i][j] == 1:
@@ -84,15 +87,53 @@ def components(img):
                     comps[i][j] = upper
                 elif upper == 0 and left != 0:
                     comps[i][j] = left
-                elif upper == left:
+                elif upper == left and (upper != 0) and (left != 0):
                     comps[i][j] = upper
                 elif (upper != left) and (upper != 0) and (left != 0):
                     comps[i][j] = upper
-                    # TODO add to equivalence table
-                else:
+                    labels.link(max(upper, left), min(upper, left))
+                elif upper == 0 and left == 0:
                     comps[i][j] = label
+                    labels.add(label)
                     label += 1
+
+    for i in range(nrow):
+        for j in range(ncols):
+
     return comps
+
+
+class Labels:
+    def __init__(self):
+        self.l = []
+
+    def exists(self, label: int):
+        for i in self.l:
+            if i.component_id == label:
+                return i
+        return None
+
+    def add(self, label: int, parent: int = None):
+        if self.exists(label) is None:
+            self.l.append(Connection(label, self.exists(parent)))
+
+    def link(self, label:int, parent:int):
+        self.exists(label).parent = self.exists(parent)
+
+    def root(self, label: int):
+        return self.exists(label).root()
+
+
+class Connection:
+    def __init__(self, component_id, parent=None):
+        self.component_id = component_id
+        self.parent = parent
+
+    def root(self):
+        if self.parent is None:
+            return self.component_id
+        else:
+            return self.parent.root()
 
 
 def bounding_box(img, component_id):
@@ -166,7 +207,7 @@ def eccentricity(img, component_id):
     xmin = .5 * (a + c) + .5 * (a - c) * cos2theta() + .5 * b * sin2theta()
     xmax = .5 * (a + c) + .5 * (a - c) * -cos2theta() + .5 * b * -sin2theta()
 
-    return xmax/xmin
+    return xmax / xmin
 
 
 def orientation(img, component_id):
