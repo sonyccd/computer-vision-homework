@@ -8,14 +8,21 @@ from skimage.draw import polygon_perimeter, circle_perimeter
 
 def main():
     print("Loading image...")
-    circles = io.imread('img/bw.jpg')
-    plt.subplot(211)
+    circles = io.imread('img/hw1.jpg')
+    plt.subplot(221)
+    plt.title("Original")
     plt.imshow(circles)
     print("Shape:", circles.shape)
     print("Size:", circles.size)
     threshold(circles, 128)
-    c_img, c_set = components(circles, 20)
+    plt.subplot(222)
+    plt.title("Threshold")
+    plt.imshow(circles)
+    c_img, c_set = components(circles, 500)
     draw_final = equalize(c_img)
+    plt.subplot(223)
+    plt.title("Components")
+    plt.imshow(draw_final)
     print("Number of components:", len(c_set))
     print("")
     for c in c_set:
@@ -30,7 +37,8 @@ def main():
         print("Orientation:", orientation(c_img, c))
         print("Eccentricity:", eccentricity(c_img, c))
         print("")
-    plt.subplot(212)
+    plt.subplot(224)
+    plt.title("Stats")
     plt.imshow(draw_final)
     plt.show()
 
@@ -48,8 +56,8 @@ def normalize_binary_img(img):
 def threshold(img, t):
     maska = img < t
     maskb = img >= t
-    img[maska] = 0
-    img[maskb] = 1
+    img[maska] = 1
+    img[maskb] = 0
     return img
 
 
