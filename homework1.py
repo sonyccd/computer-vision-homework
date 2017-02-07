@@ -99,6 +99,8 @@ def components(img):
 
     for i in range(nrow):
         for j in range(ncols):
+            if comps[i][j] != 0:
+                comps[i][j] = labels.root(comps[i][j])
 
     return comps
 
