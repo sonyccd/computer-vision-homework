@@ -79,7 +79,7 @@ def centroid(img, component_id):
 
 
 def draw_centroid(img, points):
-    rr, cc = circle_perimeter(int(points[0]), int(points[1]), radius=10, shape=img.shape)
+    rr, cc = circle_perimeter(int(points[1]), int(points[0]), radius=5, shape=img.shape)
     img[rr, cc] = 255
     return img
 
