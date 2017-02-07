@@ -9,6 +9,8 @@ from skimage.draw import polygon_perimeter, circle_perimeter
 def main():
     print("Loading image...")
     circles = io.imread('img/bw.jpg')
+    plt.subplot(211)
+    plt.imshow(circles)
     print("Shape:", circles.shape)
     print("Size:", circles.size)
     threshold(circles, 128)
@@ -28,6 +30,7 @@ def main():
         print("Orientation:", orientation(c_img, c))
         print("Eccentricity:", eccentricity(c_img, c))
         print("")
+    plt.subplot(212)
     plt.imshow(draw_final)
     plt.show()
 
