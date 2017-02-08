@@ -67,7 +67,7 @@ def histogram(img):
     plt.hist(img.ravel(), bins=256)
 
 
-# fine area of image via raveling
+# find area of image via raveling
 def img_area(img, component_id):
     area = 0
     for i in img.ravel():
