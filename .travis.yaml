@@ -5,4 +5,6 @@ cache: pip
 install:
   - pip install -r requirements.txt
 script:
-  - python tests.py
+  - pytest -v
+notifications:
+  email: false
