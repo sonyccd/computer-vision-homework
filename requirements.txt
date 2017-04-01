@@ -1,3 +1,6 @@
+scipy
+numpy
+matplotlib
 appnope=0.1.0=py35_0
 cycler=0.10.0=py35_0
 cython=0.25.2=py35_0
