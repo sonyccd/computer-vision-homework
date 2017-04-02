@@ -1,3 +1,5 @@
+# Brad Bazemore
+
 import math
 
 import matplotlib.pyplot as plt
@@ -8,20 +10,21 @@ from skimage.draw import polygon_perimeter, circle_perimeter
 
 def main():
     print("Loading image...")
-    circles = io.imread('img/hw1.jpg')
-    plt.subplot(221)
+    circles = io.imread('../img/hw1.jpg')
+    plt.subplot(231)
     plt.title("Original")
     plt.imshow(circles)
     print("Shape:", circles.shape)
     print("Size:", circles.size)
     threshold(circles, 128)
-    plt.subplot(222)
+    plt.subplot(232)
     plt.title("Threshold")
     plt.imshow(circles)
     c_img, c_set = components(circles, 500)
     draw_final = equalize(c_img)
-    plt.subplot(223)
-    plt.title("Components")
+    plt.subplot(234)
+    t1 = "CCL 500:"+str(len(c_set))
+    plt.title(t1)
     plt.imshow(draw_final)
     print("Number of components:", len(c_set))
     print("")
@@ -35,11 +38,23 @@ def main():
         draw_bounding_box(draw_final, bb)
         print("Boundary Box [row][col]:", bb)
         print("Orientation:", orientation(c_img, c))
-        print("Eccentricity:", eccentricity(c_img, c))
+        print("Elongation:", eccentricity(c_img, c))
         print("")
-    plt.subplot(224)
+    plt.subplot(233)
     plt.title("Stats")
     plt.imshow(draw_final)
+    c3_img, c3_set = components(circles, 100)
+    d3 = equalize(c3_img)
+    plt.subplot(235)
+    t2 = "CCL 100:" + str(len(c3_set))
+    plt.title(t2)
+    plt.imshow(d3)
+    c1_img, c1_set = components(circles, 10)
+    d1 = equalize(c1_img)
+    plt.subplot(236)
+    t3 = "CCL 10:" + str(len(c1_set))
+    plt.title(t3)
+    plt.imshow(d1)
     plt.show()
 
 
@@ -257,8 +272,8 @@ def eccentricity(img, component_id):
     def cos2theta():
         return (a - c) / (math.sqrt(math.pow(b, 2) + math.pow((a - c), 2)))
 
-    xmin = .5 * (a + c) + .5 * (a - c) * cos2theta() + .5 * b * sin2theta()
-    xmax = .5 * (a + c) + .5 * (a - c) * -cos2theta() + .5 * b * -sin2theta()
+    xmax = .5 * (a + c) + .5 * (a - c) * cos2theta() + .5 * b * sin2theta()
+    xmin = .5 * (a + c) + .5 * (a - c) * -cos2theta() + .5 * b * -sin2theta()
 
     return xmax / xmin
 
