@@ -1,6 +1,5 @@
 import numpy as np
 import skimage.io as io
-import matplotlib.pyplot as plt
 
 
 def _datacheck_peakdetect(x_axis, y_axis):
@@ -133,17 +132,33 @@ def peakdetect(y_axis, x_axis=None, lookahead=200, delta=0):
     return [max_peaks, min_peaks]
 
 
-def peak_detect(histogram):
-    lookahead = 10
-
+def peak_detect(histogram, lookahead=5):
+    minum = []
+    maxum = []
     for i in range(len(histogram)):
-
+        if lookahead < i < len(histogram) - lookahead:
+            if histogram[i + 1:i + lookahead].max() < histogram[i] and histogram[i - lookahead:i - 1].max() < histogram[
+                i]:
+                if len(maxum) > 1:
+                    if maxum[len(maxum) - 1] != i - 1:
+                        maxum.append(i)
+                else:
+                    maxum.append(i)
+            if histogram[i + 1:i + lookahead].min() > histogram[i] and histogram[i - lookahead:i - 1].min() > histogram[
+                i]:
+                if len(minum) > 1:
+                    if minum[len(minum) - 1] != i - 1:
+                        minum.append(i)
+                else:
+                    minum.append(i)
+    return minum, maxum
 
 
 def driver():
     image = io.imread('../img/teeth.jpg')
     hist = np.histogram(image.ravel(), 256)[0]
-    peak_detect(hist)
+    print(peak_detect(hist))
+
 
 if __name__ == '__main__':
     driver()
