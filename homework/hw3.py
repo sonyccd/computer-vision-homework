@@ -1,6 +1,7 @@
 import numpy as np
 import skimage.io as io
 import math
+import matplotlib.pyplot as plt
 
 
 def _datacheck_peakdetect(x_axis, y_axis):
@@ -173,7 +174,9 @@ def iterative_threshold(img):
     r2 = img[img < t]
     r1_mean_old = np.mean(r1)
     r2_mean_old = np.mean(r2)
+    count = 0
     while True:
+        count = count + 1
         t = 0.5 * (r1_mean_old + r2_mean_old)
         r1 = img[img > t]
         r2 = img[img < t]
@@ -181,7 +184,9 @@ def iterative_threshold(img):
         r2_mean_new = np.mean(r2)
         if math.ceil(r1_mean_old) == math.ceil(r1_mean_new) and math.ceil(r2_mean_old) == math.ceil(r2_mean_new):
             break
-    return threshold(img, t)
+        elif count > 100:
+            break
+    return threshold(img, math.ceil(t))
 
 
 # find threshold of image using numpy array masking
@@ -195,7 +200,6 @@ def threshold(img, t):
 
 def driver():
     image = io.imread('../img/teeth.jpg')
-    iterative_threshold(image)
 
 
 if __name__ == '__main__':
