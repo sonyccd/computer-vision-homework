@@ -191,13 +191,19 @@ def iterative_threshold(img):
 
 
 def adaptive_threshold(img):
-    i, j = img.shape
+    img_cp = np.copy(img)
+    i, j = img_cp.shape
     hi = math.ceil(i / 2)
     hj = math.ceil(j / 2)
-    top_left = img[0:hi, 0:hj]
-    top_right = img[0:hi, hj:j]
-    bottom_left = img[hi:i, 0:hj]
-    bottom_right = img[hi:i, hj:j]
+    top_left = img_cp[0:hi, 0:hj]
+    top_right = img_cp[0:hi, hj:j]
+    bottom_left = img_cp[hi:i, 0:hj]
+    bottom_right = img_cp[hi:i, hj:j]
+    iterative_threshold(top_left)
+    iterative_threshold(top_right)
+    iterative_threshold(bottom_left)
+    iterative_threshold(bottom_right)
+    return img_cp
 
 
 # find threshold of image using numpy array masking
